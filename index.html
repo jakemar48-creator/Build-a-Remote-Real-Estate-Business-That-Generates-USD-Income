@@ -1564,9 +1564,6 @@
   });
 
   (function () {
-    var currencyByCountry = { NG: 'NGN', US: 'USD', GB: 'GBP', GH: 'GHS', KE: 'KES' };
-    var localeCountry = (navigator.language || 'en-NG').split('-')[1] || 'NG';
-
     function renderPrices(currency, rate) {
       document.querySelectorAll('[data-local-price]').forEach(function (element) {
         var basePrice = Number(element.getAttribute('data-base-price'));
@@ -1580,16 +1577,15 @@
     }
 
     async function localizePrices() {
-      var country = localeCountry.toUpperCase();
+      var currency = 'NGN';
 
       try {
-        var locationResponse = await fetch('https://ipapi.co/country/', { cache: 'no-store' });
+        var locationResponse = await fetch('https://ipapi.co/currency/', { cache: 'no-store' });
         if (locationResponse.ok) {
-          country = (await locationResponse.text()).trim().toUpperCase() || country;
+          currency = (await locationResponse.text()).trim().toUpperCase() || currency;
         }
       } catch (error) {}
 
-      var currency = currencyByCountry[country] || 'NGN';
       if (currency === 'NGN') {
         renderPrices('NGN', 1);
         return;
