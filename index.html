@@ -1346,12 +1346,12 @@
           </ul>
 
           <div class="price-row">
-            <span class="price-old">&#8358;40,000</span>
-            <span class="price-new">&#8358;20,000</span>
+            <span class="price-old" data-local-price data-base-price="40000">&#8358;40,000</span>
+            <span class="price-new" data-local-price data-base-price="15000">&#8358;15,000</span>
           </div>
           <div class="price-caption">One time payment, today's price</div>
 
-          <a href="https://nestuge.com/checkout?items=%5B%7B%22id%22%3A%22pr_msdbm6nwldpdfh3qs5idtmyquqdfc%22%2C%22type%22%3A%22registration%22%2C%22plan%22%3A%22pl_mshxhbykycbsyqsomkmsa44jtpzhm%22%2C%22count%22%3A1%2C%22affiliate%22%3Anull%7D%5D&currency=NGN&email=emordiuche%40gmail.com&name=Uche+Emordi&redirectUrl=https%3A%2F%2Fnestuge.com%2Freal-estate-in-the-us" class="btn btn-primary btn-lg btn-block">Get Instant Access For &#8358;20,000</a>
+          <a href="https://nestuge.com/checkout?items=%5B%7B%22id%22%3A%22pr_msdbm6nwldpdfh3qs5idtmyquqdfc%22%2C%22type%22%3A%22registration%22%2C%22plan%22%3A%22pl_mshxhbykycbsyqsomkmsa44jtpzhm%22%2C%22count%22%3A1%2C%22affiliate%22%3Anull%7D%5D&currency=NGN&email=emordiuche%40gmail.com&name=Uche+Emordi&redirectUrl=https%3A%2F%2Fnestuge.com%2Freal-estate-in-the-us" class="btn btn-primary btn-lg btn-block">Get Instant Access For <span data-local-price data-base-price="15000">&#8358;15,000</span></a>
 
           <div class="pricing-trust">
             <span>Instant Delivery</span>
@@ -1489,7 +1489,7 @@
       <p class="lead">If you're serious about building a real business instead of endlessly consuming free content, this blueprint will give you the roadmap I wish I had when I started.</p>
 
       <a href="https://nestuge.com/checkout?items=%5B%7B%22id%22%3A%22pr_msdbm6nwldpdfh3qs5idtmyquqdfc%22%2C%22type%22%3A%22registration%22%2C%22plan%22%3A%22pl_mshxhbykycbsyqsomkmsa44jtpzhm%22%2C%22count%22%3A1%2C%22affiliate%22%3Anull%7D%5D&currency=NGN&email=emordiuche%40gmail.com&name=Uche+Emordi&redirectUrl=https%3A%2F%2Fnestuge.com%2Freal-estate-in-the-us" class="btn btn-primary btn-lg">Get The US Land Playbook</a>
-      <div class="final-price">&#8358;20,000</div>
+      <div class="final-price" data-local-price data-base-price="15000">&#8358;15,000</div>
 
       <div class="final-trust">
         <span><span class="dot"></span>Secure Checkout</span>
@@ -1562,6 +1562,53 @@
       });
     }
   });
+
+  (function () {
+    var currencyByCountry = { NG: 'NGN', US: 'USD', GB: 'GBP', GH: 'GHS', KE: 'KES' };
+    var localeCountry = (navigator.language || 'en-NG').split('-')[1] || 'NG';
+
+    function renderPrices(currency, rate) {
+      document.querySelectorAll('[data-local-price]').forEach(function (element) {
+        var basePrice = Number(element.getAttribute('data-base-price'));
+        var amount = Math.round(basePrice * rate);
+        element.textContent = new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: currency,
+          maximumFractionDigits: 0
+        }).format(amount);
+      });
+    }
+
+    async function localizePrices() {
+      var country = localeCountry.toUpperCase();
+
+      try {
+        var locationResponse = await fetch('https://ipapi.co/country/', { cache: 'no-store' });
+        if (locationResponse.ok) {
+          country = (await locationResponse.text()).trim().toUpperCase() || country;
+        }
+      } catch (error) {}
+
+      var currency = currencyByCountry[country] || 'NGN';
+      if (currency === 'NGN') {
+        renderPrices('NGN', 1);
+        return;
+      }
+
+      try {
+        var ratesResponse = await fetch('https://open.er-api.com/v6/latest/NGN', { cache: 'no-store' });
+        var ratesData = await ratesResponse.json();
+        if (ratesData && ratesData.result === 'success' && ratesData.rates && ratesData.rates[currency]) {
+          renderPrices(currency, ratesData.rates[currency]);
+          return;
+        }
+      } catch (error) {}
+
+      renderPrices('NGN', 1);
+    }
+
+    localizePrices();
+  })();
 </script>
 
 </body>
